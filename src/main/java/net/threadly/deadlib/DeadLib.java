@@ -8,6 +8,8 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.plugin.Plugin;
 
+import java.util.Map;
+
 @Plugin(
         id = "deadlib",
         name = "DeadLib",
@@ -22,5 +24,6 @@ public class DeadLib {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
+
     }
 }
