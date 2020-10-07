@@ -130,7 +130,8 @@ pom.xml.asc
 *.jar
 *.class
 /.lein-*
-/.nrepl-port
+.nrepl-port
+repl-port
 /.prepl-port
 .hgignore
 .hg/
