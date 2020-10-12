@@ -1,4 +1,4 @@
-package net.threadly.deadlib.event;
+package net.threadly.deadlib.api.event;
 
 import net.threadly.deadlib.module.Module;
 import org.spongepowered.api.event.Event;
