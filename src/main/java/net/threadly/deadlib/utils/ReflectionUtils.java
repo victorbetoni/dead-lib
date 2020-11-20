@@ -14,28 +14,31 @@ import java.util.stream.Stream;
 public class ReflectionUtils {
     public static class RegistryObjectUtils {
         public static Optional<RegistryObject<?>> filterResourceName(String name, Collection<RegistryObject<?>> registeries) {
-           return registeries.stream().filter(registryObject -> {
-               try {
-                   Class<?> resourceLocationClass = Class.forName("net.minecraft.util.ResourceLocation");
-                   Field resourceLocationField = registryObject.getClass().getDeclaredField("name");
-                   Field resourceNameField = resourceLocationClass.getDeclaredField("resourcePath");
-                   resourceLocationField.setAccessible(true);
-                   resourceNameField.setAccessible(true);
-                   Object resourceLocationInstance = resourceLocationField.get(registryObject);
-                   String reflectedResourceName = (String) resourceLocationField.get(resourceLocationInstance);
-                   return reflectedResourceName.equalsIgnoreCase(name);
-               } catch (NoSuchFieldException | ClassNotFoundException | IllegalAccessException e) {
-                   e.printStackTrace();
-               }
-               return false;
-           }).findFirst();
+            return registeries.stream()
+                    .filter(registryObject -> getResourceName(registryObject).equalsIgnoreCase(name))
+                    .findFirst();
         }
 
         public static <T> Collection<RegistryObject<?>> filterGenericParam(Collection<RegistryObject<?>> registries, Class<T> genericParamClass) {
             return registries.stream().filter(registryObject -> {
-                Class<?> persistentClass = (Class<?>) ((ParameterizedType)genericParamClass.getGenericSuperclass()).getActualTypeArguments()[0];
+                Class<?> persistentClass = (Class<?>) ((ParameterizedType) genericParamClass.getGenericSuperclass()).getActualTypeArguments()[0];
                 return persistentClass.equals(genericParamClass);
             }).collect(Collectors.toSet());
+        }
+
+        public static String getResourceName(RegistryObject<?> registry) {
+            try {
+                Class<?> resourceLocationClass = Class.forName("net.minecraft.util.ResourceLocation");
+                Field resourceLocationField = registry.getClass().getDeclaredField("name");
+                Field resourceNameField = resourceLocationClass.getDeclaredField("resourcePath");
+                resourceLocationField.setAccessible(true);
+                resourceNameField.setAccessible(true);
+                Object resourceLocationInstance = resourceLocationField.get(registry);
+                String reflectedResourceName = (String) resourceLocationField.get(resourceLocationInstance);
+            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
+                ex.printStackTrace();
+            }
+            return "";
         }
     }
 
