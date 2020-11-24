@@ -1,11 +1,9 @@
 package net.threadly.deadlib.utils;
 
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.registries.DeferredRegister;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,7 +13,7 @@ public class ReflectionUtils {
     public static class RegistryObjectUtils {
         public static Optional<RegistryObject<?>> filterResourceName(String name, Collection<RegistryObject<?>> registeries) {
             return registeries.stream()
-                    .filter(registryObject -> getResourceName(registryObject).equalsIgnoreCase(name))
+                    .filter(registryObject -> reflectResourceName(registryObject).equalsIgnoreCase(name))
                     .findFirst();
         }
 
@@ -26,7 +24,7 @@ public class ReflectionUtils {
             }).collect(Collectors.toSet());
         }
 
-        public static String getResourceName(RegistryObject<?> registry) {
+        public static String reflectResourceName(RegistryObject<?> registry) {
             try {
                 Class<?> resourceLocationClass = Class.forName("net.minecraft.util.ResourceLocation");
                 Field resourceLocationField = registry.getClass().getDeclaredField("name");
@@ -39,6 +37,16 @@ public class ReflectionUtils {
                 ex.printStackTrace();
             }
             return "";
+        }
+
+        public static <T> Optional<T> reflectRegistryValue(Class<T> type, RegistryObject<?> registryObject) {
+            try {
+                Class<?> registryObjectClass = Class.forName("net.minecraft.fml.RegistryObject");
+                return reflectFieldAs(registryObjectClass, "value", registryObject, type);
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+            }
+            return Optional.empty();
         }
     }
 

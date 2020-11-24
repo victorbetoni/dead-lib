@@ -25,24 +25,6 @@ public class CustomGunsModule extends AbstractModule {
 
     @Override
     public void checkConfiguration() {
-        Class<?> modItemsClass = null;
-        Class<?> deferredRegisterClass = null;
-        DeferredRegister<?> register = null;
-        Set<RegistryObject<?>> registries = null;
-        try {
-            modItemsClass = Class.forName("com.craftingdead.core.item.ModItems");
-            deferredRegisterClass = Class.forName("net.minecraftforge.registries.DeferredRegister");
-            register = (DeferredRegister<?>) modItemsClass.getDeclaredField("ITEMS").get(null);
-            registries = (Set<RegistryObject<?>>) deferredRegisterClass.getDeclaredField("entriesView").get(register);
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
-            System.out.println("Error while checking CD classes.");
-            Sponge.getServer().shutdown();
-        }
-
-        assert registries != null;
-        Collection<RegistryObject<?>> guns = ReflectionUtils.RegistryObjectUtils.filterGenericParam(registries, GunItem.class);
-        guns.forEach(gun -> gunRegistries.put(ReflectionUtils.RegistryObjectUtils.getResourceName(gun), gun));
-
         gunRegistries.forEach((name, registry) -> {
             if (!node.getNode(name).isVirtual()) {
                 CommentedConfigurationNode gunNode = node.getNode(name);
@@ -50,11 +32,11 @@ public class CustomGunsModule extends AbstractModule {
                 gunNode.getNode("damage").setValue(gun.getDamage());
                 gunNode.getNode("rpm").setValue(gun.getFireRateRPM());
                 gunNode.getNode("acurracy").setValue(gun.getAccuracy());
-                gunNode.getNode("allowed-firemodes").setValue(gun.getFireModes());
-                gunNode.getNode("allowed-magazines").setValue(gun.getAcceptedMagazines());
-                gunNode.getNode("allowed-atachments").setValue(gun.getAcceptedAttachments());
-                gunNode.getNode("allowed-paints").setValue(gun.getAcceptedPaints());
-                gunNode.getNode("reload-duration-ticks").setValue(gun.getReloadDurationTicks());
+                gunNode.getNode("allowed_firemodes").setValue(gun.getFireModes());
+                gunNode.getNode("allowed_magazines").setValue(gun.getAcceptedMagazines());
+                gunNode.getNode("allowed_atachments").setValue(gun.getAcceptedAttachments());
+                gunNode.getNode("allowed_paints").setValue(gun.getAcceptedPaints());
+                gunNode.getNode("reload_duration_ticks").setValue(gun.getReloadDurationTicks());
             }
         });
 
@@ -68,6 +50,16 @@ public class CustomGunsModule extends AbstractModule {
     @Override
     public void activate() {
         this.state = State.ACTIVATING;
+        try{
+            Class<?> cdItemsClass = Class.forName("com.craftingdead.core.item.ModItems");
+            DeferredRegister register = ReflectionUtils.reflectFieldAs(cdItemsClass, "ITEMS", null, DeferredRegister.class).get();
+            Set<RegistryObject<?>> registries = ReflectionUtils.reflectFieldAs(register.getClass(), "entriesViews", register, Set.class).get();
+            registries.forEach(registryObject -> {
+                gunRegistries.put(ReflectionUtils.RegistryObjectUtils.reflectResourceName(registryObject), registryObject);
+            });
+        }catch (ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
         this.checkConfiguration();
     }
 
